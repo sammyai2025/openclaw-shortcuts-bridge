@@ -50,6 +50,13 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
+    if (req.method === 'GET' && url.pathname === '/v1/test') {
+      const inputText = String(url.searchParams.get('text') || '').trim();
+      const mode = String(url.searchParams.get('mode') || config.defaultMode).trim() || config.defaultMode;
+      const user = String(url.searchParams.get('user') || 'public-test').trim() || 'public-test';
+      return handleBridgeRequest(res, { inputText, mode, user, endpoint: 'test' });
+    }
+
     if (req.method === 'POST' && url.pathname === '/v1/shortcut') {
       if (!isAuthorized(req.headers.authorization, config.token)) {
         return json(res, 401, { error: 'unauthorized' });
@@ -59,31 +66,7 @@ const server = http.createServer(async (req, res) => {
       const inputText = String(body.text || '').trim();
       const mode = String(body.mode || config.defaultMode).trim() || config.defaultMode;
       const user = String(body.user || 'iphone-shortcuts').trim() || 'iphone-shortcuts';
-
-      if (!inputText) {
-        return json(res, 400, { error: 'text is required' });
-      }
-      if (inputText.length > config.maxInputChars) {
-        return json(res, 400, { error: `text exceeds max length of ${config.maxInputChars}` });
-      }
-
-      const startedAt = Date.now();
-      const sessionId = buildSessionId(user, mode);
-      const prompt = buildPrompt({ text: inputText, mode });
-      const result = await runOpenClaw({ agentId: config.agentId, sessionId, message: prompt });
-      const durationMs = Date.now() - startedAt;
-
-      return json(res, 200, {
-        ok: true,
-        reply: result.reply,
-        sessionId,
-        mode,
-        durationMs,
-        raw: {
-          model: result.model,
-          usage: result.usage,
-        },
-      });
+      return handleBridgeRequest(res, { inputText, mode, user, endpoint: 'shortcut' });
     }
 
     return json(res, 404, { error: 'not_found' });
@@ -99,6 +82,33 @@ const server = http.createServer(async (req, res) => {
 server.listen(config.port, config.bind, () => {
   console.log(`openclaw-shortcuts-bridge listening on http://${config.bind}:${config.port}`);
 });
+
+async function handleBridgeRequest(res, { inputText, mode, user, endpoint }) {
+  if (!inputText) {
+    return json(res, 400, { error: 'text is required' });
+  }
+  if (inputText.length > config.maxInputChars) {
+    return json(res, 400, { error: `text exceeds max length of ${config.maxInputChars}` });
+  }
+
+  const startedAt = Date.now();
+  const sessionId = buildSessionId(`${endpoint}:${user}`, mode);
+  const prompt = buildPrompt({ text: inputText, mode });
+  const result = await runOpenClaw({ agentId: config.agentId, sessionId, message: prompt });
+  const durationMs = Date.now() - startedAt;
+
+  return json(res, 200, {
+    ok: true,
+    reply: result.reply,
+    sessionId,
+    mode,
+    durationMs,
+    raw: {
+      model: result.model,
+      usage: result.usage,
+    },
+  });
+}
 
 async function runOpenClaw({ agentId, sessionId, message }) {
   const { stdout, stderr } = await execFileAsync(

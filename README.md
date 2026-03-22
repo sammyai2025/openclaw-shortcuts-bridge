@@ -32,6 +32,18 @@ Example response:
 }
 ```
 
+### Simple test endpoint
+
+`GET /v1/test?text=...&mode=light&user=...`
+
+No authentication. This is meant only for basic connectivity testing.
+
+Example:
+
+```text
+http://162.209.124.216:8787/v1/test?text=Say%20hello%20in%20one%20short%20sentence.&mode=light&user=shyam-iphone
+```
+
 ### Invoke Shortcut bridge
 
 `POST /v1/shortcut`
