@@ -50,13 +50,6 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    if (req.method === 'GET' && url.pathname === '/v1/test') {
-      const inputText = String(url.searchParams.get('text') || '').trim();
-      const mode = String(url.searchParams.get('mode') || config.defaultMode).trim() || config.defaultMode;
-      const user = String(url.searchParams.get('user') || 'public-test').trim() || 'public-test';
-      return handleBridgeRequest(res, { inputText, mode, user, endpoint: 'test' });
-    }
-
     if (req.method === 'POST' && url.pathname === '/v1/shortcut') {
       if (!isAuthorized(req.headers.authorization, config.token)) {
         return json(res, 401, { error: 'unauthorized' });
