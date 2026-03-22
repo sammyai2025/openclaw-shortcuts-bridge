@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenClaw Shortcuts Bridge
+After=default.target openclaw-gateway.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.openclaw/workspace/openclaw-shortcuts-bridge
+EnvironmentFile=%h/.openclaw/workspace/openclaw-shortcuts-bridge/.env
+Environment=OPENCLAW_BIN=/home/ubuntu/.nvm/versions/node/v25.8.1/bin/openclaw
+Environment=NODE_BIN=/home/ubuntu/.nvm/versions/node/v25.8.1/bin/node
+ExecStart=/home/ubuntu/.nvm/versions/node/v25.8.1/bin/node server.mjs
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

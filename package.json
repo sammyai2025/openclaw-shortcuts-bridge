@@ -1,0 +1,10 @@
+{
+  "name": "openclaw-shortcuts-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Public HTTP bridge for iPhone Shortcuts to talk to a local OpenClaw agent",
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}
